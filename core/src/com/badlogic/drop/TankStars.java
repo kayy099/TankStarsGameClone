@@ -1,0 +1,30 @@
+package com.badlogic.drop;
+
+import com.badlogic.gdx.Game;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+
+public class TankStars extends Game {
+
+    public static final int V_WIDTH =1000;
+    public static final int V_HEIGHT =300;
+
+    public SpriteBatch batch;
+    public BitmapFont font;
+
+    public void create() {
+        batch = new SpriteBatch();
+        font = new BitmapFont(); // use libGDX's default Arial font
+        this.setScreen(new StartingPage(this));
+    }
+
+    public void render() {
+        super.render(); // important!
+    }
+
+    public void dispose() {
+        batch.dispose();
+        font.dispose();
+    }
+
+}

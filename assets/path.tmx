@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.9" tiledversion="1.9.2" orientation="orthogonal" renderorder="right-down" width="50" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="3">
+ <tileset firstgid="1" source="../../../test/assets/NES - Kirbys Adventure - Ice Cream Island 2.tsx"/>
+ <layer id="1" name="Tile Layer 1" width="50" height="20">
+  <data encoding="base64" compression="zlib">
+   eJzt0UlSwkAUxvFABMUhKBwFB8TCErUQUY/g1hHBCTechSoVnHA8j27Y4HQK/6mKVcEiIW1nkUUvfpvu1/2+113TNK2mKIqiKIq0VNhfIncGeY52SHwOmXlf6fcm0NP0Qf0nvpD9s5fDIjZ170QydKh7D3Vn+LZyzFs1C7YcS1i21vNYQQGrKGIN6zjHBS7RQBNXgnPIZtiw+vXKcY0b3OIOLdzjAY94wjN0zg8ggigGMSQwg8npLbxmeHHJEcMwRjCKMRiIYxwTSGAL29jBLvaw7yH7Kao40+Uz9Ot1gDIqOMSRQ47//MdvhqTLW5QcMhzjxJZB5O/dyP7HJKYwjRmkMYsM5lz2/VrP+HRX3VCC5Ac5XLQo
+  </data>
+ </layer>
+ <objectgroup id="5" name="path">
+  <object id="2" x="-1" y="228">
+   <polygon points="0,0 7,-5 43,8 68,-7 105,-22 186,21 290,-26 314,-10 373,-37 457,4 548,-39 576,-26 625,-53 802,-54 801,87 233,91 3,88"/>
+  </object>
+ </objectgroup>
+</map>
