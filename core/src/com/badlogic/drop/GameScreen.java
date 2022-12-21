@@ -1,10 +1,12 @@
 package com.badlogic.drop;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
@@ -18,10 +20,13 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.physics.box2d.Body;
+import static com.badlogic.drop.Constants.PPM;
 
 public class GameScreen implements Screen {
 	final TankStars game;
 	public ImageButton pauseMenu;
+	private Texture tank1;
+	private Texture tank2;
 	private Texture backgroundImage;
 	private TextureRegion backgroundTexture;
 	private Stage stage;
@@ -33,7 +38,10 @@ public class GameScreen implements Screen {
 	private OrthogonalTiledMapRenderer renderer;
 	private World world;
 	private Box2DDebugRenderer b2dr;
-	private Body player;
+	private Body player1_box;
+	private Body player2_box;
+	private SpriteBatch batch;
+	int turn = 0;
 	public GameScreen(final TankStars game) {
 		this.game = game;
 		//backgroundImage = new Texture(Gdx.files.internal("terrain_game(1).jpg"));
@@ -45,7 +53,7 @@ public class GameScreen implements Screen {
 		// create the camera and the SpriteBatch
 		camera = new OrthographicCamera();
 		stage = new Stage();
-		map = new TmxMapLoader().load("AP_trail.tmx");
+		map = new TmxMapLoader().load("final_path.tmx");
 		renderer = new OrthogonalTiledMapRenderer(map);
 		camera.setToOrtho(false, Gdx.graphics.getWidth(),Gdx.graphics.getHeight());
 //        gamePort = new FitViewport(1000, 250,camera);
@@ -53,84 +61,37 @@ public class GameScreen implements Screen {
 		camera.position.set(gamePort.getWorldWidth()/2, gamePort.getWorldHeight()/2.5f,0);
 		world = new World(new Vector2(0,0),false);
 		b2dr = new Box2DDebugRenderer();
-		player = createPlayer();
-
+		player1_box = createBox(150,150,55,32,false);
+		player2_box = createBox(350,150,55,32,false);
+		batch = new SpriteBatch();
+		tank1 = new Texture("newtank3.png");
+		tank2 = new Texture("newtank1flip.png");
+		TiledObjectUtil.parseTiledObjectLayer(world,map.getLayers().get("ground").getObjects());
 	}
 
 	@Override
 	public void render(float delta) {
-		// clear the screen with a dark blue color. The
-		// arguments to clear are the red, green
-		// blue and alpha component in the range [0,1]
-		// of the color to be used to clear the screen.
 		ScreenUtils.clear(0, 0, 0, 1);
 		update(Gdx.graphics.getDeltaTime());
 		hud = new Hud(game.batch);
-		game.batch.setProjectionMatrix(hud.stage.getCamera().combined);
-		// tell the camera to update its matrices.
-		camera.update();
-
-		// tell the SpriteBatch to render in the
-		// coordinate system specified by the camera.
-//        game.batch.setProjectionMatrix(camera.combined);
-//
-//        game.batch.begin();
-//        game.batch.draw(backgroundTexture,0 , 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-//        game.batch.end();
-
-		stage.getBatch().setProjectionMatrix(camera.combined);
-		//stage.getBatch().begin();
-		//stage.getBatch().draw(backgroundTexture,0 , 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		//stage.getBatch().end();
-		stage.draw();
+//		game.batch.setProjectionMatrix(hud.stage.getCamera().combined);
+//		camera.update();
 		renderer.render();
 		renderer.setView(camera);
 		gamePort.apply();
+        batch.begin();
+//		batch.draw(tex,100,100,50,50);
+		batch.draw(tank1,player1_box.getPosition().x-25 ,player1_box.getPosition().y-25,50,50);
+		batch.draw(tank2,player2_box.getPosition().x-25 ,player2_box.getPosition().y-25,50,50);
+		batch.end();
 		b2dr.render(world, camera.combined);
 
-		// process user input
-//        if (Gdx.input.isTouched()) {
-//            Vector3 touchPos = new Vector3();
-//            touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
-//            camera.unproject(touchPos);
-//            bucket.x = touchPos.x - 64 / 2;
-//        }
-//        if (Gdx.input.isKeyPressed(Keys.LEFT))
-//            bucket.x -= 200 * Gdx.graphics.getDeltaTime();
-//        if (Gdx.input.isKeyPressed(Keys.RIGHT))
-//            bucket.x += 200 * Gdx.graphics.getDeltaTime();
-//
-//        // make sure the bucket stays within the screen bounds
-//        if (bucket.x < 0)
-//            bucket.x = 0;
-//        if (bucket.x > 800 - 64)
-//            bucket.x = 800 - 64;
-//
-//        // check if we need to create a new raindrop
-//        if (TimeUtils.nanoTime() - lastDropTime > 1000000000)
-//            spawnRaindrop();
-//
-//        // move the raindrops, remove any that are beneath the bottom edge of
-//        // the screen or that hit the bucket. In the later case we increase the
-//        // value our drops counter and add a sound effect.
-//        Iterator<Rectangle> iter = raindrops.iterator();
-//        while (iter.hasNext()) {
-//            Rectangle raindrop = iter.next();
-//            raindrop.y -= 200 * Gdx.graphics.getDeltaTime();
-//            if (raindrop.y + 64 < 0)
-//                iter.remove();
-//            if (raindrop.overlaps(bucket)) {
-//                dropsGathered++;
-//                dropSound.play();
-//                iter.remove();
-//            }
-//        }
 	}
 
 
 	@Override
 	public void show() {
-		warMusic.play();
+		//warMusic.play();
 //        stage = new Stage(new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), camera), game.batch);
 //        Gdx.input.setInputProcessor(stage);
 //        Texture pauseMenuTexture = new Texture(Gdx.files.internal("icons8-xbox-menu-96.png"));
@@ -149,20 +110,59 @@ public class GameScreen implements Screen {
 //        stage.addActor(pauseMenu);
 	}
 
-	public void handleInput (float dt){
-		if(Gdx.input.isTouched())
-			camera.position.x += 100*dt;
-	}
+//	public void handleInput (float dt){
+//		if(Gdx.input.isTouched())
+//			camera.position.x += 100*dt;
+//	}
 	public void update(float dt){
 		world.step(1/60f, 6,2);
-		handleInput(dt);
-		camera.update();
-		renderer.setView(camera);
 		cameraUpdate(dt);
+		inputUpdate(dt);
+		batch.setProjectionMatrix(camera.combined);
+//		handleInput(dt);
+//		camera.update();
+//		renderer.setView(camera);
+
+	}
+	public void inputUpdate(float dt){
+		if(Gdx.input.isKeyPressed(Input.Keys.SPACE)){
+			if(turn==0){
+				turn=1;
+			}
+			else if(turn==1){
+				turn=0;
+			}
+		}
+		if(turn==0){
+			int horizontalForce1 = 0;
+			if(Gdx.input.isKeyPressed(Input.Keys.LEFT)){
+				horizontalForce1-=1;
+			}
+			if(Gdx.input.isKeyPressed(Input.Keys.RIGHT)){
+				horizontalForce1+=1;
+			}
+			player1_box.setLinearVelocity(horizontalForce1*10, player1_box.getLinearVelocity().y);
+		}
+		else if(turn==1){
+			int horizontalForce2 = 0;
+			if(Gdx.input.isKeyPressed(Input.Keys.LEFT)){
+				horizontalForce2-=1;
+			}
+			if(Gdx.input.isKeyPressed(Input.Keys.RIGHT)){
+				horizontalForce2+=1;
+			}
+			player2_box.setLinearVelocity(horizontalForce2*10, player1_box.getLinearVelocity().y);
+		}
+
+
+
 	}
 	public void cameraUpdate(float delta){
-		Vector3 position = camera.position;
-
+//		Vector3 position = camera.position;
+//		position.x = player.getPosition().x;
+//		position.y = player.getPosition().y;
+//		camera.position.set(position);
+//		camera.update();
 	}
 
 	@Override
@@ -185,21 +185,23 @@ public class GameScreen implements Screen {
 
 	@Override
 	public void dispose() {
-		warMusic.dispose();
 		map.dispose();
 		renderer.dispose();
 		b2dr.dispose();
 		world.dispose();
 	}
-	public Body createPlayer(){
+	public Body createBox(int x, int y,int width, int height, boolean isStatic){
 		Body pBody;
 		BodyDef def = new BodyDef();
-		def.type = BodyDef.BodyType.DynamicBody;
-		def.position.set(0,0);
+		if(isStatic)
+			def.type = BodyDef.BodyType.StaticBody;
+		else
+			def.type = BodyDef.BodyType.DynamicBody;
+		def.position.set(x,y);
 		def.fixedRotation = true;
 		pBody = world.createBody(def);
 		PolygonShape shape = new PolygonShape();
-		shape.setAsBox(32/2,32/2);
+		shape.setAsBox(width/2,height/2);
 		pBody.createFixture(shape,1.0f);
 		shape.dispose();
 		return pBody;
