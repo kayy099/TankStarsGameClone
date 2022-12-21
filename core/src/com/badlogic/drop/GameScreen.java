@@ -1,5 +1,6 @@
 package com.badlogic.drop;
 
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
@@ -11,12 +12,17 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.*;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -24,11 +30,12 @@ import static com.badlogic.drop.Constants.PPM;
 
 public class GameScreen implements Screen {
 	final TankStars game;
-	public ImageButton pauseMenu;
+	private Texture pauseMenu;
+	private ImageButton pausemenu;
 	private Texture tank1;
 	private Texture tank2;
-	private Texture backgroundImage;
-	private TextureRegion backgroundTexture;
+	private Texture bullet;
+	private Texture bullet_flipped;
 	private Stage stage;
 	Music warMusic;
 	private OrthographicCamera camera;
@@ -40,6 +47,9 @@ public class GameScreen implements Screen {
 	private Box2DDebugRenderer b2dr;
 	private Body player1_box;
 	private Body player2_box;
+	private Body pauseMenubox;
+	private Body bulletbox;
+	private Body bulletflippedbox;
 	private SpriteBatch batch;
 	int turn = 0;
 	public GameScreen(final TankStars game) {
@@ -62,11 +72,23 @@ public class GameScreen implements Screen {
 		world = new World(new Vector2(0,0),false);
 		b2dr = new Box2DDebugRenderer();
 		player1_box = createBox(150,150,55,32,false);
-		player2_box = createBox(350,150,55,32,false);
+		player2_box = createBox(650,150,55,32,false);
+//		pauseMenubox = createBox(75,250,55,32,false);
+		bulletbox = createBox(180,150,20,20,false);
+		bulletflippedbox = createBox(620,150,20,20,false);
 		batch = new SpriteBatch();
 		tank1 = new Texture("newtank3.png");
 		tank2 = new Texture("newtank1flip.png");
+//		pauseMenu = new Texture("icons8-xbox-menu-96.png");
+		bullet = new Texture("bulletflip.png");
+		bullet_flipped = new Texture("bullet.png");
 		TiledObjectUtil.parseTiledObjectLayer(world,map.getLayers().get("ground").getObjects());
+		Texture pauseMenuTexture = new Texture(Gdx.files.internal("icons8-xbox-menu-96.png"));
+		TextureRegion pauseMenuTextureRegion = new TextureRegion(pauseMenuTexture);
+		TextureRegionDrawable pauseMenuTextureRegionDrawable = new TextureRegionDrawable(pauseMenuTextureRegion);
+		pausemenu = new ImageButton(pauseMenuTextureRegionDrawable);
+		pausemenu.setPosition(13,420);
+		pausemenu.setSize(50,50);
 	}
 
 	@Override
@@ -79,10 +101,14 @@ public class GameScreen implements Screen {
 		renderer.render();
 		renderer.setView(camera);
 		gamePort.apply();
+		stage.draw();
         batch.begin();
 //		batch.draw(tex,100,100,50,50);
 		batch.draw(tank1,player1_box.getPosition().x-25 ,player1_box.getPosition().y-25,50,50);
 		batch.draw(tank2,player2_box.getPosition().x-25 ,player2_box.getPosition().y-25,50,50);
+//		batch.draw(pauseMenu,pauseMenubox.getPosition().x-25,pauseMenubox.getPosition().y-25,50,50);
+		batch.draw(bullet,bulletbox.getPosition().x-25,bulletbox.getPosition().y-15,20,20);
+		batch.draw(bullet_flipped,bulletflippedbox.getPosition().x-25,bulletflippedbox.getPosition().y-15,20,20);
 		batch.end();
 		b2dr.render(world, camera.combined);
 
@@ -92,22 +118,14 @@ public class GameScreen implements Screen {
 	@Override
 	public void show() {
 		//warMusic.play();
-//        stage = new Stage(new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), camera), game.batch);
-//        Gdx.input.setInputProcessor(stage);
-//        Texture pauseMenuTexture = new Texture(Gdx.files.internal("icons8-xbox-menu-96.png"));
-//        TextureRegion pauseMenuTextureRegion = new TextureRegion(pauseMenuTexture);
-//        TextureRegionDrawable pauseMenuTextureRegionDrawable = new TextureRegionDrawable(pauseMenuTextureRegion);
-//        pauseMenu = new ImageButton(pauseMenuTextureRegionDrawable);
-//        pauseMenu.setPosition(13,416);
-//        pauseMenu.setSize(51,51);
-//        pauseMenu.addListener(new ClickListener(){
-//            @Override
-//            public void clicked(InputEvent event, float x, float y) {
-//                ((Game)Gdx.app.getApplicationListener()).setScreen(new PauseScreen(game));
-//                dispose();
-//            }
-//        });
-//        stage.addActor(pauseMenu);
+		Gdx.input.setInputProcessor(stage);
+        stage.addActor(pausemenu);
+		pausemenu.addListener(new ClickListener(){
+			@Override
+			public void clicked(InputEvent event, float x, float y) {
+				((Game)Gdx.app.getApplicationListener()).setScreen(new PauseScreen(game));
+			}
+		});
 	}
 
 //	public void handleInput (float dt){
@@ -131,6 +149,15 @@ public class GameScreen implements Screen {
 			}
 			else if(turn==1){
 				turn=0;
+			}
+		}
+
+		if(Gdx.input.isKeyPressed(Input.Keys.F)){
+			if(turn==0){
+				bulletbox.setLinearVelocity(20, bulletbox.getLinearVelocity().y);
+			}
+			else if(turn==1){
+				bulletflippedbox.setLinearVelocity(-20, bulletflippedbox.getLinearVelocity().y);
 			}
 		}
 		if(turn==0){
