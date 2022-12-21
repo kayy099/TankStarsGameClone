@@ -8,6 +8,34 @@ public class Tank {
     private int tankVal1;
     private int tankVal2;
 
+    private int health;
+    private int power;
+
+    //constructor
+    public Tank(int health, int power) {
+
+        this.health = health;
+        this.power = power;
+    }
+
+    //getters setters
+    public int getHealth() {
+        return health;
+    }
+
+    public void setHealth(int health) { // update after every hit
+        this.health = health;
+    }
+
+    public int getPower() {
+        return power;
+    }
+
+    public void setPower(int power) { //updates with move
+        this.power = power;
+    }
+
+
     public Tank(Texture tank1, Texture tank2) {
         this.tank1 = tank1;
     }
@@ -43,7 +71,5 @@ public class Tank {
     public void setTank2(Texture tank2) {
         this.tank2 = tank2;
     }
-
-
 
 }
